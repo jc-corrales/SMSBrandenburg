@@ -2,9 +2,14 @@ package source;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.security.InvalidKeyException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.SignatureException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -21,9 +26,23 @@ public class ProtocoloCliente
 	public final static String CERTCLNT = "CERTCLNT";
 	public final static String CERTSRV = "CERTSRV";
 	public final static Integer FINALSTATE = 5;
-	
+	public final static String ALGORITMOSIMETRICO = "AES";
+	public final static String ALGORITMOASIMETRICO = "RSA";
+	public final static String ALGORITMOHMAC = "HmacMD5";
 	private static Socket socket;
 	private static byte[] certificado;
+	
+	private static PublicKey llaveServidor;
+	
+	private static ClaseSecretaAsimetrico claseSecretaAsimetrico;
+	private static ClaseSecretaSimetrico claseSecretaSimetrico;
+	private static GeneradorDeCertificados certificateGenerator;
+	public ProtocoloCliente()
+	{
+		claseSecretaAsimetrico = new ClaseSecretaAsimetrico(ALGORITMOASIMETRICO);
+		claseSecretaSimetrico = new ClaseSecretaSimetrico(ALGORITMOSIMETRICO, "");
+		certificateGenerator = new GeneradorDeCertificados(claseSecretaAsimetrico.getKeys());
+	}
 
 	public static void procesar(//BufferedReader pIn,PrintWriter pOut
 			) throws IOException {
@@ -59,10 +78,16 @@ public class ProtocoloCliente
 					break;
 				}
 				output.println(CERTCLNT);
-				java.security.cert.X509Certificate cert = null;
+				X509Certificate certCliente = generarCertificado();
+				if(certCliente == null)
+				{
+					outputLine = ERROR;
+					estado = FINALSTATE;
+					break;
+				}
 				byte[] mybyte;
 				try {
-					mybyte = cert.getEncoded();
+					mybyte = certCliente.getEncoded();
 				} catch (CertificateEncodingException e1) {
 					System.out.println("ERROR: " + e1.getMessage());
 					outputLine = ERROR;
@@ -93,22 +118,25 @@ public class ProtocoloCliente
 					estado = 0;
 					break;
 				}
-				inputLine = input.readLine();
-				byte[] certificado = inputLine.getBytes();
-				if(revisarCertificado(certificado))
-				{
-					outputLine = ESTADO + ":" + OK;
-				}
-				else
-				{
-					outputLine = ESTADO + ":" + ERROR;
-				}
+//				inputLine = input.readLine();
+//				byte[] entradaCertServidor = inputLine.getBytes();
+				InputStream certInput = socket.getInputStream();
+				revisarCertificado(certInput);
+				
+//				if(revisarCertificado(certificado))
+//				{
+//					outputLine = ESTADO + ":" + OK;
+//				}
+//				else
+//				{
+//					outputLine = ESTADO + ":" + ERROR;
+//				}
 				estado++;
 				break;
 			case 3:
 				try
 				{
-					if(!inputLine.equals(INICIO))
+					if(!inputLine.startsWith(INICIO))
 					{
 						outputLine = "ERROR-EsperabaHola";
 						estado = 0;
@@ -160,26 +188,39 @@ public class ProtocoloCliente
 	public static String obtenerAlgoritmos()
 	{
 		//TODO implementar método para obtener los algoritmos necesarios.
-		return "";
+		String respuesta = ALGORITMOS + ":" + ALGORITMOSIMETRICO+ ":" + ALGORITMOASIMETRICO+ ":" + ALGORITMOHMAC;
+		return respuesta;
 	}
 	
-	public static X509Certificate generarCertificado() throws CertificateException
+	public static X509Certificate generarCertificado()
 	{
+		X509Certificate respuesta = null;
 		//TODO implementar método para obtener los algoritmos necesarios.
-		CertificateFactory cf = CertificateFactory.getInstance("X509");
-		cf.generateCertificate(inStream);
-	}
-	
-	public static String obtenerCertificado()
-	{
-		//TODO implementar método para obtener los algoritmos necesarios.
-
-		return "";
-	}
-	
-	public static boolean revisarCertificado (byte[] certificado)
+		try {
+			respuesta = GeneradorDeCertificados.generateV3Certificate(claseSecretaAsimetrico.getKeys());
+		} catch (InvalidKeyException | NoSuchProviderException | SignatureException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return respuesta;
+	}	
+	public static boolean revisarCertificado (InputStream certificado)
 	{
 		//TODO implementar método para revisar la veracidad del certificado.
+		try
+		{
+			CertificateFactory cf = CertificateFactory.getInstance("X509");
+			X509Certificate certificadoServidor = (X509Certificate) cf.generateCertificate(certificado);
+			llaveServidor = certificadoServidor.getPublicKey();
+			byte[] firma = certificadoServidor.getSignature();
+			certificadoServidor.getSigAlgName();
+			claseSecretaAsimetrico.descifrarCertificado(firma, llaveServidor);
+		}
+		catch(Exception e)
+		{
+			System.out.println("Error: " + e.getMessage());
+		}
+
 		return true;
 	}
 	
