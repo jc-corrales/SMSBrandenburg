@@ -13,7 +13,7 @@ import javax.crypto.Cipher;
 
 public class ClaseSecretaAsimetrico
 {
-//	public final static String ALGORITMO="RSA";
+	//	public final static String ALGORITMO="RSA";
 	public static String algoritmo;
 	private KeyPair keyPair;
 	public ClaseSecretaAsimetrico(String pAlgoritmo)
@@ -32,7 +32,7 @@ public class ClaseSecretaAsimetrico
 			e.printStackTrace();
 		}
 	}
-	
+
 	public byte[] cifrar() {
 		try {
 			Cipher cipher = Cipher.getInstance(algoritmo);
@@ -56,19 +56,16 @@ public class ClaseSecretaAsimetrico
 			return null;
 		}
 	}
-	public void descifrar(byte[] cipheredText) {
-		try {
-			Cipher cipher = Cipher.getInstance(algoritmo);
-			cipher.init(Cipher.DECRYPT_MODE, keyPair.getPrivate());
-			byte [] clearText = cipher.doFinal(cipheredText);
-			String s3 = new String(clearText);
-			System.out.println("clave original: " + s3);
-		}
-		catch (Exception e) {
-			System.out.println("Excepcion: " + e.getMessage());
-		}
+	public String descifrar(byte[] cipheredText) throws Exception
+	{
+		Cipher cipher = Cipher.getInstance(algoritmo);
+		cipher.init(Cipher.DECRYPT_MODE, keyPair.getPrivate());
+		byte [] clearText = cipher.doFinal(cipheredText);
+		String s3 = new String(clearText);
+		System.out.println("clave original: " + s3);
+		return s3;
 	}
-	
+
 	public static void descifrarCertificado(byte[] cipheredText, PublicKey llaveCertificado) {
 		try {
 			Cipher cipher = Cipher.getInstance(algoritmo);
@@ -81,7 +78,7 @@ public class ClaseSecretaAsimetrico
 			System.out.println("Excepcion: " + e.getMessage());
 		}
 	}
-	
+
 	public KeyPair getKeys()
 	{
 		return keyPair;

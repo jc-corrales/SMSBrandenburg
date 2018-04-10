@@ -1,12 +1,15 @@
 package source;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PublicKey;
 import java.security.SignatureException;
@@ -14,6 +17,9 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
 
 public class ProtocoloCliente
 {
@@ -37,8 +43,9 @@ public class ProtocoloCliente
 	private static ClaseSecretaAsimetrico claseSecretaAsimetrico;
 	private static ClaseSecretaSimetrico claseSecretaSimetrico;
 	private static GeneradorDeCertificados certificateGenerator;
-	public ProtocoloCliente()
+	public ProtocoloCliente(Socket pSocket)
 	{
+		socket = pSocket;
 		claseSecretaAsimetrico = new ClaseSecretaAsimetrico(ALGORITMOASIMETRICO);
 		claseSecretaSimetrico = new ClaseSecretaSimetrico(ALGORITMOSIMETRICO, "");
 		certificateGenerator = new GeneradorDeCertificados(claseSecretaAsimetrico.getKeys());
@@ -47,10 +54,12 @@ public class ProtocoloCliente
 	public static void procesar(//BufferedReader pIn,PrintWriter pOut
 			) throws IOException {
 		BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		PrintWriter output = new PrintWriter(socket.getOutputStream(),true);
+		InputStream bytesInput = socket.getInputStream();
+//		PrintWriter output = new PrintWriter(socket.getOutputStream(),true);
+		OutputStream output = socket.getOutputStream();
 		String inputLine, outputLine;
 		int estado = 0;
-		output.println(HOLA);
+		output.write(HOLA.getBytes());
 		while (estado < FINALSTATE && (inputLine = input.readLine()) != null) {
 			switch (estado) {
 			case 0:
@@ -77,7 +86,7 @@ public class ProtocoloCliente
 					estado = 0;
 					break;
 				}
-				output.println(CERTCLNT);
+				output.write(CERTCLNT.getBytes());
 				X509Certificate certCliente = generarCertificado();
 				if(certCliente == null)
 				{
@@ -88,6 +97,7 @@ public class ProtocoloCliente
 				byte[] mybyte;
 				try {
 					mybyte = certCliente.getEncoded();
+					outputLine = mybyte.toString();
 				} catch (CertificateEncodingException e1) {
 					System.out.println("ERROR: " + e1.getMessage());
 					outputLine = ERROR;
@@ -99,7 +109,7 @@ public class ProtocoloCliente
 				break;
 			case 2:
 				String[] entrada2 = inputLine.split(":");
-				if(!(entrada2[0].equals(ESTADO) &&entrada2[1].equals(OK)))
+				if(!(entrada2[0].equals(ESTADO) && entrada2[1].equals(OK)))
 				{
 					outputLine = "ERROR-EsperabaHola";
 					estado = 0;
@@ -108,7 +118,7 @@ public class ProtocoloCliente
 				else if(entrada2[0].equals(ESTADO) && entrada2[1].equals(ERROR))
 				{
 					outputLine = "ERROR-EsperabaHola";
-					estado = 0;
+					estado = FINALSTATE;
 					break;
 				}
 				inputLine = input.readLine();
@@ -118,19 +128,17 @@ public class ProtocoloCliente
 					estado = 0;
 					break;
 				}
-//				inputLine = input.readLine();
-//				byte[] entradaCertServidor = inputLine.getBytes();
-				InputStream certInput = socket.getInputStream();
-				revisarCertificado(certInput);
-				
-//				if(revisarCertificado(certificado))
-//				{
-//					outputLine = ESTADO + ":" + OK;
-//				}
-//				else
-//				{
-//					outputLine = ESTADO + ":" + ERROR;
-//				}
+				//TODO
+				byte[] arreglo;
+				bytesInput.read(arreglo);
+				if(revisarCertificado(arreglo))
+				{
+					outputLine = ESTADO + ":" + OK;
+				}
+				else
+				{
+					outputLine = ESTADO + ":" + ERROR;
+				}
 				estado++;
 				break;
 			case 3:
@@ -142,6 +150,12 @@ public class ProtocoloCliente
 						estado = 0;
 						break;
 					}
+					String[] datos = inputLine.split(":");
+					byte[] LSbytes = claseSecretaAsimetrico.descifrar(datos[1].getBytes()).getBytes();
+					Cipher obtenedorDeLlave = Cipher.getInstance(ALGORITMOSIMETRICO);
+					SecretKey LS = (SecretKey) obtenedorDeLlave.unwrap(LSbytes, ALGORITMOSIMETRICO, Cipher.SECRET_KEY);
+					String coordenadas = "41 24.2028, 2 10.4418";
+					claseSecretaSimetrico.cifrar(coordenadas);
 					//TODO ACTO 1
 					output.println("");
 					//TODO ACTO 2
@@ -180,7 +194,7 @@ public class ProtocoloCliente
 				estado = 0;
 				break;
 			}
-			output.println(outputLine);
+			output.write(outputLine.getBytes());
 			output.flush();
 		}
 	}
@@ -204,24 +218,42 @@ public class ProtocoloCliente
 		}
 		return respuesta;
 	}	
-	public static boolean revisarCertificado (InputStream certificado)
+	public static boolean revisarCertificado (byte[] certificateBytes)
 	{
+		boolean respuesta = false;
 		//TODO implementar método para revisar la veracidad del certificado.
 		try
 		{
 			CertificateFactory cf = CertificateFactory.getInstance("X509");
-			X509Certificate certificadoServidor = (X509Certificate) cf.generateCertificate(certificado);
-			llaveServidor = certificadoServidor.getPublicKey();
-			byte[] firma = certificadoServidor.getSignature();
-			certificadoServidor.getSigAlgName();
-			claseSecretaAsimetrico.descifrarCertificado(firma, llaveServidor);
-		}
-		catch(Exception e)
+			ByteArrayInputStream stream = new ByteArrayInputStream(certificateBytes);
+			X509Certificate certificadoServidor = (X509Certificate) cf.generateCertificate(stream);
+			certificadoServidor.verify(certificadoServidor.getPublicKey());
+//			llaveServidor = certificadoServidor.getPublicKey();
+//			byte[] firma = certificadoServidor.getSignature();
+//			certificadoServidor.getSigAlgName();
+//			ClaseSecretaAsimetrico.descifrarCertificado(firma, llaveServidor);
+			respuesta = true;
+		}catch (CertificateException e)
 		{
-			System.out.println("Error: " + e.getMessage());
+			System.out.println(e.getMessage());
 		}
-
-		return true;
+		catch (NoSuchAlgorithmException e)
+		{
+			System.out.println(e.getMessage());
+		}
+		catch (InvalidKeyException e)
+		{
+			System.out.println(e.getMessage());
+		}
+		catch (NoSuchProviderException e)
+		{
+			System.out.println(e.getMessage());
+		}
+		catch (SignatureException e)
+		{
+			System.out.println(e.getMessage());
+		}
+		return respuesta;
 	}
 	
 	public static byte[] generarLlaveSimetrica()
