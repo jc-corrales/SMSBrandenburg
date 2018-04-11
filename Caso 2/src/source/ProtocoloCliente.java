@@ -12,6 +12,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PublicKey;
+import java.security.Security;
 import java.security.SignatureException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
@@ -34,7 +35,7 @@ public class ProtocoloCliente
 	public final static Integer FINALSTATE = 5;
 	public final static String ALGORITMOSIMETRICO = "AES";
 	public final static String ALGORITMOASIMETRICO = "RSA";
-	public final static String ALGORITMOHMAC = "HmacMD5";
+	public final static String ALGORITMOHMAC = "HMACMD5";
 	private static Socket socket;
 	private static byte[] certificado;
 	
@@ -45,22 +46,26 @@ public class ProtocoloCliente
 	private static GeneradorDeCertificados certificateGenerator;
 	public ProtocoloCliente(Socket pSocket)
 	{
+//		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 		socket = pSocket;
 		claseSecretaAsimetrico = new ClaseSecretaAsimetrico(ALGORITMOASIMETRICO);
 		claseSecretaSimetrico = new ClaseSecretaSimetrico(ALGORITMOSIMETRICO, "");
 		certificateGenerator = new GeneradorDeCertificados(claseSecretaAsimetrico.getKeys());
 	}
 
-	public static void procesar(//BufferedReader pIn,PrintWriter pOut
+	public void procesar(//BufferedReader pIn,PrintWriter pOut
 			) throws IOException {
 		BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		InputStream bytesInput = socket.getInputStream();
-//		PrintWriter output = new PrintWriter(socket.getOutputStream(),true);
-		OutputStream output = socket.getOutputStream();
+		PrintWriter output = new PrintWriter(socket.getOutputStream(),true);
+		OutputStream bytesoutput = socket.getOutputStream();
 		String inputLine, outputLine;
 		int estado = 0;
-		output.write(HOLA.getBytes());
+		System.out.println("PRE");
+		output.println(HOLA);
+		System.out.println("POST");
 		while (estado < FINALSTATE && (inputLine = input.readLine()) != null) {
+			System.out.println("INPUTLINE: " + inputLine);
 			switch (estado) {
 			case 0:
 				if (!inputLine.equalsIgnoreCase(INICIO)) {
@@ -86,7 +91,7 @@ public class ProtocoloCliente
 					estado = 0;
 					break;
 				}
-				output.write(CERTCLNT.getBytes());
+				output.println(CERTCLNT);
 				X509Certificate certCliente = generarCertificado();
 				if(certCliente == null)
 				{
@@ -104,7 +109,7 @@ public class ProtocoloCliente
 					estado = FINALSTATE;
 					break;
 				}
-				outputLine = mybyte.toString();
+//				outputLine = mybyte.toString();
 				estado++;
 				break;
 			case 2:
@@ -129,7 +134,7 @@ public class ProtocoloCliente
 					break;
 				}
 				//TODO
-				byte[] arreglo;
+				byte[] arreglo = null;
 				bytesInput.read(arreglo);
 				if(revisarCertificado(arreglo))
 				{
@@ -157,7 +162,7 @@ public class ProtocoloCliente
 					String coordenadas = "41 24.2028, 2 10.4418";
 					claseSecretaSimetrico.cifrar(coordenadas);
 					//TODO ACTO 1
-					output.println("");
+//					output.println("");
 					//TODO ACTO 2
 					outputLine = "";
 					estado++;
@@ -194,9 +199,11 @@ public class ProtocoloCliente
 				estado = 0;
 				break;
 			}
-			output.write(outputLine.getBytes());
+			output.println(outputLine);
 			output.flush();
 		}
+		output.close();
+		input.close();
 	}
 	
 	public static String obtenerAlgoritmos()

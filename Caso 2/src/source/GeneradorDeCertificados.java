@@ -69,7 +69,8 @@ public class GeneradorDeCertificados
 
 		certGen.addExtension(X509Extensions.SubjectAlternativeName, false, new GeneralNames(new GeneralName(GeneralName.rfc822Name, "test@test.test")));
 
-		return certGen.generateX509Certificate(pair.getPrivate(), Principal.PROVIDER);
+		return certGen.generateX509Certificate(pair.getPrivate()//, Principal.PROVIDER
+				);
 	}
 
 //	public static void main(String[] args) throws Exception
@@ -77,7 +78,8 @@ public class GeneradorDeCertificados
 //		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 //		String algoritmo = "RSA";
 //		KeyPairGenerator generator;
-//		generator = KeyPairGenerator.getInstance(algoritmo, Principal.PROVIDER);
+//		generator = KeyPairGenerator.getInstance(algoritmo//,Principal.PROVIDER
+//				);
 //		generator.initialize(1024);
 //		// create the keys
 //		KeyPair keyPair = generator.generateKeyPair();

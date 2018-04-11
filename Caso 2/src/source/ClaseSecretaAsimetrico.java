@@ -21,16 +21,18 @@ public class ClaseSecretaAsimetrico
 		algoritmo = pAlgoritmo;
 		KeyPairGenerator generator;
 		try {
-			generator = KeyPairGenerator.getInstance(algoritmo, Principal.PROVIDER);
+			generator = KeyPairGenerator.getInstance(algoritmo//, Principal.PROVIDER
+					);
 			generator.initialize(1024);
 			keyPair = generator.generateKeyPair();
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (NoSuchProviderException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		} 
+//		catch (NoSuchProviderException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 
 	public byte[] cifrar() {
