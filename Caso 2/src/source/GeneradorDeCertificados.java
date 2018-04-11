@@ -19,6 +19,7 @@ import org.bouncycastle.x509.X509V3CertificateGenerator;
 @SuppressWarnings("deprecation")
 public class GeneradorDeCertificados
 {
+	private X509Certificate certificado;
 	/**
 	 * 
 	 * @param keyPair Pares de llaves. Estas pares de llaves deben ser generadas con el algoritmo RSA,
@@ -35,6 +36,7 @@ public class GeneradorDeCertificados
 			cert.checkValidity(new Date());
 
 			cert.verify(cert.getPublicKey());
+			certificado = cert;
 		}
 		catch (InvalidKeyException | NoSuchProviderException | SignatureException e) {
 			// TODO Auto-generated catch block
@@ -69,16 +71,20 @@ public class GeneradorDeCertificados
 
 		certGen.addExtension(X509Extensions.SubjectAlternativeName, false, new GeneralNames(new GeneralName(GeneralName.rfc822Name, "test@test.test")));
 
-		return certGen.generateX509Certificate(pair.getPrivate()//, Principal.PROVIDER
+		return certGen.generateX509Certificate(pair.getPrivate(), Principal.PROVIDER
 				);
 	}
 
+	public X509Certificate getCertificate()
+	{
+		return certificado;
+	}
 //	public static void main(String[] args) throws Exception
 //	{
 //		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 //		String algoritmo = "RSA";
 //		KeyPairGenerator generator;
-//		generator = KeyPairGenerator.getInstance(algoritmo//,Principal.PROVIDER
+//		generator = KeyPairGenerator.getInstance(algoritmo,Principal.PROVIDER
 //				);
 //		generator.initialize(1024);
 //		// create the keys

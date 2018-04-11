@@ -32,7 +32,7 @@ public class ProtocoloCliente
 	public final static String INICIO = "INICIO";
 	public final static String CERTCLNT = "CERTCLNT";
 	public final static String CERTSRV = "CERTSRV";
-	public final static Integer FINALSTATE = 5;
+	public final static Integer FINALSTATE = 6;
 	public final static String ALGORITMOSIMETRICO = "AES";
 	public final static String ALGORITMOASIMETRICO = "RSA";
 	public final static String ALGORITMOHMAC = "HMACMD5";
@@ -46,7 +46,7 @@ public class ProtocoloCliente
 	private static GeneradorDeCertificados certificateGenerator;
 	public ProtocoloCliente(Socket pSocket)
 	{
-//		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 		socket = pSocket;
 		claseSecretaAsimetrico = new ClaseSecretaAsimetrico(ALGORITMOASIMETRICO);
 		claseSecretaSimetrico = new ClaseSecretaSimetrico(ALGORITMOSIMETRICO, "");
@@ -58,7 +58,7 @@ public class ProtocoloCliente
 		BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		InputStream bytesInput = socket.getInputStream();
 		PrintWriter output = new PrintWriter(socket.getOutputStream(),true);
-		OutputStream bytesoutput = socket.getOutputStream();
+		OutputStream bytesOutput = socket.getOutputStream();
 		String inputLine, outputLine;
 		int estado = 0;
 		System.out.println("PRE");
@@ -92,17 +92,20 @@ public class ProtocoloCliente
 					break;
 				}
 				output.println(CERTCLNT);
-				X509Certificate certCliente = generarCertificado();
-				if(certCliente == null)
-				{
-					outputLine = ERROR;
-					estado = FINALSTATE;
-					break;
-				}
+				X509Certificate certCliente = certificateGenerator.getCertificate();
+//				System.out.println("Certificado Cliente: " + certCliente);
+//				if(certCliente == null)
+//				{
+//					outputLine = ERROR;
+//					estado = FINALSTATE;
+//					break;
+//				}
 				byte[] mybyte;
 				try {
 					mybyte = certCliente.getEncoded();
-					outputLine = mybyte.toString();
+					bytesOutput.write(mybyte);
+					bytesOutput.flush();
+					outputLine = "";
 				} catch (CertificateEncodingException e1) {
 					System.out.println("ERROR: " + e1.getMessage());
 					outputLine = ERROR;
@@ -126,15 +129,18 @@ public class ProtocoloCliente
 					estado = FINALSTATE;
 					break;
 				}
-				inputLine = input.readLine();
+				outputLine = "";
+				estado++;
+				break;
+			case 3:
+//				inputLine = input.readLine();
 				if(!inputLine.equals(CERTSRV))
 				{
 					outputLine = "ERROR-EsperabaHola";
 					estado = 0;
 					break;
 				}
-				//TODO
-				byte[] arreglo = null;
+				byte[] arreglo = inputLine.getBytes();
 				bytesInput.read(arreglo);
 				if(revisarCertificado(arreglo))
 				{
@@ -146,7 +152,7 @@ public class ProtocoloCliente
 				}
 				estado++;
 				break;
-			case 3:
+			case 4:
 				try
 				{
 					if(!inputLine.startsWith(INICIO))
@@ -174,7 +180,7 @@ public class ProtocoloCliente
 					estado = FINALSTATE;
 				}
 				break;
-			case 4:
+			case 5:
 				try
 				{
 					String[] entrada3 = inputLine.split(":");
@@ -213,18 +219,18 @@ public class ProtocoloCliente
 		return respuesta;
 	}
 	
-	public static X509Certificate generarCertificado()
-	{
-		X509Certificate respuesta = null;
-		//TODO implementar método para obtener los algoritmos necesarios.
-		try {
-			respuesta = GeneradorDeCertificados.generateV3Certificate(claseSecretaAsimetrico.getKeys());
-		} catch (InvalidKeyException | NoSuchProviderException | SignatureException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return respuesta;
-	}	
+//	public static X509Certificate generarCertificado()
+//	{
+//		X509Certificate respuesta = null;
+//		//TODO implementar método para obtener los algoritmos necesarios.
+//		try {
+//			respuesta = GeneradorDeCertificados.generateV3Certificate(claseSecretaAsimetrico.getKeys());
+//		} catch (InvalidKeyException | NoSuchProviderException | SignatureException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		return respuesta;
+//	}	
 	public static boolean revisarCertificado (byte[] certificateBytes)
 	{
 		boolean respuesta = false;
