@@ -64,7 +64,8 @@ public class ProtocoloCliente
 		System.out.println("PRE");
 		output.println(HOLA);
 		System.out.println("POST");
-		while (estado < FINALSTATE && (inputLine = input.readLine()) != null) {
+		while (estado < FINALSTATE && (inputLine = input.readLine()) != null)
+		{
 			System.out.println("INPUTLINE: " + inputLine);
 			switch (estado) {
 			case 0:
@@ -140,16 +141,25 @@ public class ProtocoloCliente
 					estado = 0;
 					break;
 				}
-				byte[] arreglo = inputLine.getBytes();
-				bytesInput.read(arreglo);
-				if(revisarCertificado(arreglo))
+//				System.out.println("PRE BYTES");
+//				
+//				System.out.println("POST BYTES");
+				System.out.println("PRE VERIFICACIÓN");
+				if(revisarCertificado(bytesInput))
 				{
+//					output = new PrintWriter(socket.getOutputStream(),true);
+					System.out.println("Entro");
 					outputLine = ESTADO + ":" + OK;
+					System.out.println("salio");
+//					output.write(outputLine);
+//					output.flush();
 				}
 				else
 				{
 					outputLine = ESTADO + ":" + ERROR;
 				}
+				outputLine = "";
+				System.out.println("POST VERIFICACIÓN");
 				estado++;
 				break;
 			case 4:
@@ -205,8 +215,11 @@ public class ProtocoloCliente
 				estado = 0;
 				break;
 			}
-			output.println(outputLine);
-			output.flush();
+			if(!outputLine.equals(""))
+			{
+				output.println(outputLine);
+				output.flush();
+			}
 		}
 		output.close();
 		input.close();
@@ -231,15 +244,15 @@ public class ProtocoloCliente
 //		}
 //		return respuesta;
 //	}	
-	public static boolean revisarCertificado (byte[] certificateBytes)
+	public static boolean revisarCertificado (InputStream input)
 	{
 		boolean respuesta = false;
 		//TODO implementar método para revisar la veracidad del certificado.
 		try
 		{
 			CertificateFactory cf = CertificateFactory.getInstance("X509");
-			ByteArrayInputStream stream = new ByteArrayInputStream(certificateBytes);
-			X509Certificate certificadoServidor = (X509Certificate) cf.generateCertificate(stream);
+//			ByteArrayInputStream stream = new ByteArrayInputStream(certificateBytes);
+			X509Certificate certificadoServidor = (X509Certificate) cf.generateCertificate(input);
 			certificadoServidor.verify(certificadoServidor.getPublicKey());
 //			llaveServidor = certificadoServidor.getPublicKey();
 //			byte[] firma = certificadoServidor.getSignature();
@@ -266,6 +279,7 @@ public class ProtocoloCliente
 		{
 			System.out.println(e.getMessage());
 		}
+		System.out.println("booleanoControl:" + respuesta);
 		return respuesta;
 	}
 	
