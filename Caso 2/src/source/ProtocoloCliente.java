@@ -141,25 +141,17 @@ public class ProtocoloCliente
 					estado = 0;
 					break;
 				}
-//				System.out.println("PRE BYTES");
-//				
-//				System.out.println("POST BYTES");
 				System.out.println("PRE VERIFICACIÓN");
 				if(revisarCertificado(bytesInput))
 				{
-//					output = new PrintWriter(socket.getOutputStream(),true);
 					System.out.println("Entro");
 					outputLine = ESTADO + ":" + OK;
 					System.out.println("salio");
-//					output.write(outputLine);
-//					output.flush();
 				}
 				else
 				{
 					outputLine = ESTADO + ":" + ERROR;
 				}
-				outputLine = "";
-				System.out.println("POST VERIFICACIÓN");
 				estado++;
 				break;
 			case 4:
@@ -176,7 +168,8 @@ public class ProtocoloCliente
 					Cipher obtenedorDeLlave = Cipher.getInstance(ALGORITMOSIMETRICO);
 					SecretKey LS = (SecretKey) obtenedorDeLlave.unwrap(LSbytes, ALGORITMOSIMETRICO, Cipher.SECRET_KEY);
 					String coordenadas = "41 24.2028, 2 10.4418";
-					claseSecretaSimetrico.cifrar(coordenadas);
+					byte[] respuesta1 = claseSecretaSimetrico.cifrar(coordenadas);
+					outputLine = "ACT1:" + respuesta1.toString();
 					//TODO ACTO 1
 //					output.println("");
 					//TODO ACTO 2
@@ -186,6 +179,8 @@ public class ProtocoloCliente
 				}
 				catch(Exception e)
 				{
+					e.printStackTrace();
+					System.out.println("ERROR: "+e.getMessage());
 					outputLine = ERROR;
 					estado = FINALSTATE;
 				}
@@ -217,6 +212,7 @@ public class ProtocoloCliente
 			}
 			if(!outputLine.equals(""))
 			{
+				System.out.println("Listo para imprimir");
 				output.println(outputLine);
 				output.flush();
 			}
@@ -254,6 +250,7 @@ public class ProtocoloCliente
 //			ByteArrayInputStream stream = new ByteArrayInputStream(certificateBytes);
 			X509Certificate certificadoServidor = (X509Certificate) cf.generateCertificate(input);
 			certificadoServidor.verify(certificadoServidor.getPublicKey());
+//			CertificateBuilder (bouncycastle)
 //			llaveServidor = certificadoServidor.getPublicKey();
 //			byte[] firma = certificadoServidor.getSignature();
 //			certificadoServidor.getSigAlgName();
