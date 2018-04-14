@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.security.InvalidKeyException;
+import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PublicKey;
@@ -21,6 +22,9 @@ import java.security.cert.X509Certificate;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.bouncycastle.util.encoders.Hex;
 
 public class ProtocoloCliente
 {
@@ -164,12 +168,15 @@ public class ProtocoloCliente
 						break;
 					}
 					String[] datos = inputLine.split(":");
-					byte[] LSbytes = claseSecretaAsimetrico.descifrar(datos[1].getBytes()).getBytes();
-					Cipher obtenedorDeLlave = Cipher.getInstance(ALGORITMOSIMETRICO);
-					SecretKey LS = (SecretKey) obtenedorDeLlave.unwrap(LSbytes, ALGORITMOSIMETRICO, Cipher.SECRET_KEY);
+					byte[] hexString = Hex.decode(datos[1]);
+					byte[] LSbytes = claseSecretaAsimetrico.descifrar(hexString).getBytes();
+					SecretKey LS = new SecretKeySpec(LSbytes, 0, LSbytes.length, ALGORITMOSIMETRICO);
+					System.out.println("Llave simétrica: " + LS.toString());
 					String coordenadas = "41 24.2028, 2 10.4418";
 					byte[] respuesta1 = claseSecretaSimetrico.cifrar(coordenadas, LS);
-					outputLine = "ACT1:" + respuesta1.toString();
+					byte[] respuesta1PostHexadecimal = Hex.encode(respuesta1);
+					outputLine = "ACT1:" + respuesta1PostHexadecimal;
+					output.println(outputLine);
 					//TODO ACTO 1
 //					output.println("");
 					//TODO ACTO 2
