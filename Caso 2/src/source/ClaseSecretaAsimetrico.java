@@ -37,12 +37,10 @@ public class ClaseSecretaAsimetrico
 //		}
 	}
 
-	public byte[] cifrar() {
+	public byte[] cifrar(String texto) {
 		try {
 			Cipher cipher = Cipher.getInstance(algoritmo);
-			BufferedReader stdIn =
-					new BufferedReader(new InputStreamReader(System.in));
-			String pwd = stdIn.readLine();
+			String pwd = texto;
 			byte [] clearText = pwd.getBytes();
 			String s1 = new String (clearText);
 			System.out.println("clave original: " + s1);
@@ -60,6 +58,29 @@ public class ClaseSecretaAsimetrico
 			return null;
 		}
 	}
+	
+	public byte[] cifrar(String texto, PublicKey publicKey) {
+		try {
+			Cipher cipher = Cipher.getInstance(algoritmo);
+			String pwd = texto;
+			byte [] clearText = pwd.getBytes();
+			String s1 = new String (clearText);
+			System.out.println("clave original: " + s1);
+			cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+			long startTime = System.nanoTime();
+			byte [] cipheredText = cipher.doFinal(clearText);
+			long endTime = System.nanoTime();
+			System.out.println("clave cifrada: " + cipheredText);
+			System.out.println("Tiempo asimetrico: " +
+					(endTime - startTime));
+			return cipheredText;
+		}
+		catch (Exception e) {
+			System.out.println("Excepcion: " + e.getMessage());
+			return null;
+		}
+	}
+	
 	public String descifrar(byte[] cipheredText) throws Exception
 	{
 		Cipher cipher = Cipher.getInstance(algoritmo);

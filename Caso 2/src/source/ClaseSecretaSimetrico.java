@@ -41,6 +41,9 @@ public class ClaseSecretaSimetrico
 			String s2 = new String (cipheredText);
 			System.out.println("entrada cifrada: " + s2);
 			System.out.println("Tiempo: " + (endTime - startTime));
+//			System.out.println("Longitud: " + cipheredText.length);
+//			System.out.println("TextoEnSí:" + cipheredText);
+			System.out.println("StringInicializado:" +s2);
 			return cipheredText;
 		}
 		catch (Exception e) {

@@ -168,19 +168,31 @@ public class ProtocoloCliente
 						break;
 					}
 					String[] datos = inputLine.split(":");
+					//INICIO ACT1
 					byte[] hexString = Hex.decode(datos[1]);
 					byte[] LSbytes = claseSecretaAsimetrico.descifrar(hexString).getBytes();
 					SecretKey LS = new SecretKeySpec(LSbytes, 0, LSbytes.length, ALGORITMOSIMETRICO);
 					System.out.println("Llave simétrica: " + LS.toString());
-					String coordenadas = "41 24.2028, 2 10.4418";
+					String coordenadas = "40.7127837,74.00594130000002";
 					byte[] respuesta1 = claseSecretaSimetrico.cifrar(coordenadas, LS);
+					System.out.println(respuesta1);
 					byte[] respuesta1PostHexadecimal = Hex.encode(respuesta1);
-					outputLine = "ACT1:" + respuesta1PostHexadecimal;
+					System.out.println(new String (respuesta1));
+					System.out.println(new String (respuesta1PostHexadecimal));
+					outputLine = "ACT1:" + new String(respuesta1PostHexadecimal);
+					output.flush();
+//					outputLine = respuesta12.toUpperCase();
+					System.out.println(outputLine);
 					output.println(outputLine);
-					//TODO ACTO 1
-//					output.println("");
+					//FIN ACT1
+					//INICIO ACT2
+					Hash hashObject = new Hash();
+					byte[] hasheadoBytes = hashObject.calcular(coordenadas, ALGORITMOHMAC, Principal.PROVIDER);
+					String hasheado = new String(hasheadoBytes);
+					byte[] respuesta2 = claseSecretaAsimetrico.cifrar(hasheado, llaveServidor);
+					byte[] respuesta2PostExadecimal = Hex.encode(respuesta2);
+					outputLine = "ACT2:" + new String(respuesta2PostExadecimal);
 					//TODO ACTO 2
-					outputLine = "";
 					estado++;
 					break;
 				}
@@ -219,7 +231,6 @@ public class ProtocoloCliente
 			}
 			if(!outputLine.equals(""))
 			{
-				System.out.println("Listo para imprimir");
 				output.println(outputLine);
 				output.flush();
 			}
@@ -263,6 +274,7 @@ public class ProtocoloCliente
 //			certificadoServidor.getSigAlgName();
 //			ClaseSecretaAsimetrico.descifrarCertificado(firma, llaveServidor);
 			respuesta = true;
+			llaveServidor = certificadoServidor.getPublicKey();
 		}catch (CertificateException e)
 		{
 			System.out.println(e.getMessage());
