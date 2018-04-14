@@ -168,7 +168,7 @@ public class ProtocoloCliente
 					Cipher obtenedorDeLlave = Cipher.getInstance(ALGORITMOSIMETRICO);
 					SecretKey LS = (SecretKey) obtenedorDeLlave.unwrap(LSbytes, ALGORITMOSIMETRICO, Cipher.SECRET_KEY);
 					String coordenadas = "41 24.2028, 2 10.4418";
-					byte[] respuesta1 = claseSecretaSimetrico.cifrar(coordenadas);
+					byte[] respuesta1 = claseSecretaSimetrico.cifrar(coordenadas, LS);
 					outputLine = "ACT1:" + respuesta1.toString();
 					//TODO ACTO 1
 //					output.println("");

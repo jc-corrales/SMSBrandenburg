@@ -9,7 +9,7 @@ import javax.crypto.SecretKey;
 
 public class ClaseSecretaSimetrico
 {
-	private SecretKey desKey;
+//	private SecretKey desKey;
 //	private final static String ALGORITMO="AES";
 	private final static String PADDING="AES/ECB/PKCS5Padding";
 	private String algoritmo;
@@ -22,7 +22,7 @@ public class ClaseSecretaSimetrico
 	 * Método para cifrar.
 	 * @return
 	 */
-	public byte[] cifrar(String entrada) {
+	public byte[] cifrar(String entrada, SecretKey llave) {
 		byte [] cipheredText;
 		try {
 //			KeyGenerator keygen = KeyGenerator.getInstance(algoritmo);
@@ -34,7 +34,7 @@ public class ClaseSecretaSimetrico
 			byte [] clearText = entrada.getBytes();
 			String s1 = new String (clearText);
 			System.out.println("clave original: " + s1);
-			cipher.init(Cipher.ENCRYPT_MODE, desKey);
+			cipher.init(Cipher.ENCRYPT_MODE, llave);
 			long startTime = System.nanoTime();
 			cipheredText = cipher.doFinal(clearText);
 			long endTime = System.nanoTime();
@@ -52,10 +52,10 @@ public class ClaseSecretaSimetrico
 	 * Método para descifrar
 	 * @param cipheredText
 	 */
-	public void descifrar(byte [] cipheredText) {
+	public void descifrar(byte [] cipheredText, SecretKey llave) {
 		try {
 			Cipher cipher = Cipher.getInstance(PADDING);
-			cipher.init(Cipher.DECRYPT_MODE, desKey);
+			cipher.init(Cipher.DECRYPT_MODE, llave);
 			byte [] clearText = cipher.doFinal(cipheredText);
 			String s3 = new String(clearText);
 			System.out.println("clave original: " + s3);
