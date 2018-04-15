@@ -11,7 +11,7 @@ public class Hash
 		
 	}
 	
-	private byte[] getKeyedDigest(byte[] buffer, String algoritmo, String proveedor) {
+	private byte[] getKeyedDigest(byte[] buffer) {
 		try {
 			MessageDigest md5 = MessageDigest.getInstance("MD5");
 			md5.update(buffer);
@@ -20,14 +20,14 @@ public class Hash
 			return null;
 		}
 	}
-	public byte[] calcular(String informacion, String algoritmo, String proveedor) {
+	public byte[] calcular(String informacion) {
 		try {
 //			BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 			String dato = informacion;
 			byte[] text = dato.getBytes();
 			String s1 = new String(text);
 			System.out.println("dato original: " + s1);
-			byte [] digest = getKeyedDigest(text, algoritmo, proveedor);
+			byte [] digest = getKeyedDigest(text);
 			String s2 = new String(digest);
 			System.out.println("digest: "+ s2);
 			return digest;

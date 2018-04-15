@@ -187,7 +187,7 @@ public class ProtocoloCliente
 					//FIN ACT1
 					//INICIO ACT2
 					Hash hashObject = new Hash();
-					byte[] hasheadoBytes = hashObject.calcular(coordenadas, ALGORITMOHMAC, Principal.PROVIDER);
+					byte[] hasheadoBytes = hashObject.calcular(coordenadas);
 					String hasheado = new String(hasheadoBytes);
 					byte[] respuesta2 = claseSecretaAsimetrico.cifrar(hasheado, llaveServidor);
 					byte[] respuesta2PostExadecimal = Hex.encode(respuesta2);
