@@ -19,6 +19,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.text.DecimalFormat;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -41,7 +42,7 @@ public class ProtocoloCliente
 	public final static String ALGORITMOASIMETRICO = "RSA";
 	public final static String ALGORITMOHMAC = "HMACMD5";
 	private static Socket socket;
-	private static byte[] certificado;
+	private X509Certificate certCliente;
 	
 	private static PublicKey llaveServidor;
 	
@@ -55,6 +56,7 @@ public class ProtocoloCliente
 		claseSecretaAsimetrico = new ClaseSecretaAsimetrico(ALGORITMOASIMETRICO);
 		claseSecretaSimetrico = new ClaseSecretaSimetrico(ALGORITMOSIMETRICO, "");
 		certificateGenerator = new GeneradorDeCertificados(claseSecretaAsimetrico.getKeys());
+		certCliente = certificateGenerator.getCertificate();
 	}
 
 	public void procesar(//BufferedReader pIn,PrintWriter pOut
@@ -97,7 +99,7 @@ public class ProtocoloCliente
 					break;
 				}
 				output.println(CERTCLNT);
-				X509Certificate certCliente = certificateGenerator.getCertificate();
+				
 //				System.out.println("Certificado Cliente: " + certCliente);
 //				if(certCliente == null)
 //				{
@@ -117,7 +119,6 @@ public class ProtocoloCliente
 					estado = FINALSTATE;
 					break;
 				}
-//				outputLine = mybyte.toString();
 				estado++;
 				break;
 			case 2:
@@ -138,7 +139,6 @@ public class ProtocoloCliente
 				estado++;
 				break;
 			case 3:
-//				inputLine = input.readLine();
 				if(!inputLine.equals(CERTSRV))
 				{
 					outputLine = "ERROR-EsperabaHola";
@@ -173,7 +173,9 @@ public class ProtocoloCliente
 					byte[] LSbytes = claseSecretaAsimetrico.descifrar(hexString).getBytes();
 					SecretKey LS = new SecretKeySpec(LSbytes, 0, LSbytes.length, ALGORITMOSIMETRICO);
 					System.out.println("Llave simétrica: " + LS.toString());
-					String coordenadas = "40.7127837,74.00594130000002";
+//					String coordenadas = "40.7127837,74.00594130000002";
+//					String coordenadas = "41 24.2028, 2 10.4418";
+					String coordenadas = obtenerCoordenadas();
 					byte[] respuesta1 = claseSecretaSimetrico.cifrar(coordenadas, LS);
 					System.out.println(respuesta1);
 					byte[] respuesta1PostHexadecimal = Hex.encode(respuesta1);
@@ -192,7 +194,7 @@ public class ProtocoloCliente
 					byte[] respuesta2 = claseSecretaAsimetrico.cifrar(hasheado, llaveServidor);
 					byte[] respuesta2PostExadecimal = Hex.encode(respuesta2);
 					outputLine = "ACT2:" + new String(respuesta2PostExadecimal);
-					//TODO ACTO 2
+					//FIN ACT2
 					estado++;
 					break;
 				}
@@ -211,6 +213,7 @@ public class ProtocoloCliente
 					if(!(entrada3[0].equals(ESTADO) && entrada3[1].equals(OK)))
 					{
 						outputLine = "ERROR-EsperabaHola";
+						System.out.println(ERROR + ": falló confirmación final.");
 						estado = 0;
 						break;
 					}
@@ -299,10 +302,23 @@ public class ProtocoloCliente
 		return respuesta;
 	}
 	
-	public static byte[] generarLlaveSimetrica()
+	public String obtenerCoordenadas()
 	{
-		//TODO implementar método para generar llave simétrica
-		return "hola".getBytes();
+		double minLat = -90.00;
+	    double maxLat = 90.00;      
+	    double latitude = minLat + (double)(Math.random() * ((maxLat - minLat) + 1));
+	    double minLon = 0.00;
+	    double maxLon = 180.00;     
+	    double longitude = minLon + (double)(Math.random() * ((maxLon - minLon) + 1));
+	    DecimalFormat df = new DecimalFormat("#.#####");
+	    
+	    String[] parte1 = df.format(latitude).split(",");
+	    String parte1Corregida = parte1[0] + "." + parte1[1];
+	    String[] parte2 = df.format(latitude).split(",");
+	    String parte2Corregida = parte2[0] + "." + parte2[1];
+	    String respuesta = (parte1Corregida + "," + parte2Corregida);
+	    System.out.println("Coordenadas: " + respuesta);
+	    return respuesta;
 	}
 	
 }

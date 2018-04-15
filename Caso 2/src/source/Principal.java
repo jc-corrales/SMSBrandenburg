@@ -13,10 +13,14 @@ public class Principal {
 
 	public static void main(String[] arg0) throws CertificateException, IOException
 	{
+//		certificateGenerator.getCertificate();
 //		ServerSocket ss = new ServerSocket(PUERTO);
-		Socket socket = new Socket(IP,PUERTO);
-		ProtocoloCliente protocolo = new ProtocoloCliente(socket);
-		protocolo.procesar();
-		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+//		for(int i = 0; i < 10; i++)
+//		{
+			Socket socket = new Socket(IP,PUERTO);
+			ProtocoloCliente protocolo = new ProtocoloCliente(socket);
+			protocolo.procesar();
+//		}
+//		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 	}
 }
