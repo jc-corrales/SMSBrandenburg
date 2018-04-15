@@ -314,7 +314,7 @@ public class ProtocoloCliente
 	    
 	    String[] parte1 = df.format(latitude).split(",");
 	    String parte1Corregida = parte1[0] + "." + parte1[1];
-	    String[] parte2 = df.format(latitude).split(",");
+	    String[] parte2 = df.format(longitude).split(",");
 	    String parte2Corregida = parte2[0] + "." + parte2[1];
 	    String respuesta = (parte1Corregida + "," + parte2Corregida);
 	    System.out.println("Coordenadas: " + respuesta);
