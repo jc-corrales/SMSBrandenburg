@@ -1,9 +1,7 @@
 package source;
 
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.security.Security;
 import java.security.cert.CertificateException;
 
 public class Principal {
@@ -15,12 +13,13 @@ public class Principal {
 	{
 //		certificateGenerator.getCertificate();
 //		ServerSocket ss = new ServerSocket(PUERTO);
-//		for(int i = 0; i < 10; i++)
-//		{
+		for(int i = 0; i < 100; i++)
+		{
 			Socket socket = new Socket(IP,PUERTO);
 			ProtocoloCliente protocolo = new ProtocoloCliente(socket);
 			protocolo.procesar();
-//		}
+			socket.close();
+		}
 //		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 	}
 }

@@ -1,13 +1,9 @@
 package source;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PublicKey;
-import java.security.Security;
 
 import javax.crypto.Cipher;
 
@@ -89,6 +85,14 @@ public class ClaseSecretaAsimetrico
 		String s3 = new String(clearText);
 		System.out.println("clave original: " + s3);
 		return s3;
+	}
+	
+	public byte[] descifrarEnBytes(byte[] cipheredText) throws Exception
+	{
+		Cipher cipher = Cipher.getInstance(algoritmo);
+		cipher.init(Cipher.DECRYPT_MODE, keyPair.getPrivate());
+		byte [] clearText = cipher.doFinal(cipheredText);
+		return clearText;
 	}
 
 	public static void descifrarCertificado(byte[] cipheredText, PublicKey llaveCertificado) {

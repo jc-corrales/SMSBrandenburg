@@ -6,35 +6,37 @@ package source;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 public class ClaseSecretaSimetrico
 {
 //	private SecretKey desKey;
 //	private final static String ALGORITMO="AES";
 	private final static String PADDING="AES/ECB/PKCS5Padding";
-	private String algoritmo;
+//	private String algoritmo;
 	public ClaseSecretaSimetrico(String pAlgoritmo, String pPadding)
 	{
-		algoritmo = pAlgoritmo;
+//		algoritmo = pAlgoritmo;
 	}
 
 	/**
 	 * Método para cifrar.
 	 * @return
 	 */
-	public byte[] cifrar(String entrada, SecretKey llave) {
+	public static byte[] cifrar(String entrada, byte[] llave, String algoritmo) {
 		byte [] cipheredText;
 		try {
 //			KeyGenerator keygen = KeyGenerator.getInstance(algoritmo);
 //			desKey = keygen.generateKey();
-			Cipher cipher = Cipher.getInstance(PADDING);
+			SecretKeySpec keySpec = new SecretKeySpec(llave, algoritmo);
+			Cipher cipher = Cipher.getInstance(algoritmo);
 			//		BufferedReader stdIn = new BufferedReader(
 			//		 new InputStreamReader(System.in));
 			//		String pwd = stdIn.readLine();
 			byte [] clearText = entrada.getBytes();
 			String s1 = new String (clearText);
 			System.out.println("entrada original: " + s1);
-			cipher.init(Cipher.ENCRYPT_MODE, llave);
+			cipher.init(Cipher.ENCRYPT_MODE, keySpec);
 			long startTime = System.nanoTime();
 			cipheredText = cipher.doFinal(clearText);
 			long endTime = System.nanoTime();

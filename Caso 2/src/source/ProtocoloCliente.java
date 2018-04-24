@@ -1,7 +1,6 @@
 package source;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -9,7 +8,6 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.security.InvalidKeyException;
-import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PublicKey;
@@ -22,6 +20,7 @@ import java.security.cert.X509Certificate;
 import java.text.DecimalFormat;
 
 import javax.crypto.Cipher;
+import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -40,21 +39,21 @@ public class ProtocoloCliente
 	public final static Integer FINALSTATE = 6;
 	public final static String ALGORITMOSIMETRICO = "AES";
 	public final static String ALGORITMOASIMETRICO = "RSA";
-	public final static String ALGORITMOHMAC = "HMACMD5";
+	public final static String ALGORITMOHMAC = "HMACSHA1";
 	private static Socket socket;
 	private X509Certificate certCliente;
 	
 	private static PublicKey llaveServidor;
 	
 	private static ClaseSecretaAsimetrico claseSecretaAsimetrico;
-	private static ClaseSecretaSimetrico claseSecretaSimetrico;
+//	private static ClaseSecretaSimetrico claseSecretaSimetrico;
 	private static GeneradorDeCertificados certificateGenerator;
 	public ProtocoloCliente(Socket pSocket)
 	{
 		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 		socket = pSocket;
 		claseSecretaAsimetrico = new ClaseSecretaAsimetrico(ALGORITMOASIMETRICO);
-		claseSecretaSimetrico = new ClaseSecretaSimetrico(ALGORITMOSIMETRICO, "");
+//		claseSecretaSimetrico = new ClaseSecretaSimetrico(ALGORITMOSIMETRICO, "");
 		certificateGenerator = new GeneradorDeCertificados(claseSecretaAsimetrico.getKeys());
 		certCliente = certificateGenerator.getCertificate();
 	}
@@ -72,6 +71,12 @@ public class ProtocoloCliente
 		System.out.println("POST");
 		while (estado < FINALSTATE && (inputLine = input.readLine()) != null)
 		{
+			try {
+				Thread.sleep(200);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			System.out.println("INPUTLINE: " + inputLine);
 			switch (estado) {
 			case 0:
@@ -169,31 +174,33 @@ public class ProtocoloCliente
 					}
 					String[] datos = inputLine.split(":");
 					//INICIO ACT1
-					byte[] hexString = Hex.decode(datos[1]);
-					byte[] LSbytes = claseSecretaAsimetrico.descifrar(hexString).getBytes();
+					Cipher cipherAsimetrico = Cipher.getInstance(ALGORITMOASIMETRICO);
+					cipherAsimetrico.init(Cipher.DECRYPT_MODE, claseSecretaAsimetrico.getKeys().getPrivate());
+					byte[] LSbytes = cipherAsimetrico.doFinal(Hex.decode(datos[1]));
 					SecretKey LS = new SecretKeySpec(LSbytes, 0, LSbytes.length, ALGORITMOSIMETRICO);
-					System.out.println("Llave simétrica: " + LS.toString());
-//					String coordenadas = "40.7127837,74.00594130000002";
-//					String coordenadas = "41 24.2028, 2 10.4418";
 					String coordenadas = obtenerCoordenadas();
-					byte[] respuesta1 = claseSecretaSimetrico.cifrar(coordenadas, LS);
+					Cipher cipherSimetrico = Cipher.getInstance(ALGORITMOSIMETRICO);
+					SecretKeySpec keySpec = new SecretKeySpec(LSbytes, ALGORITMOSIMETRICO);
+					cipherSimetrico.init(Cipher.ENCRYPT_MODE, keySpec);
+					
+					byte[] respuesta1 = cipherSimetrico.doFinal(coordenadas.getBytes()); 
+					
+					
 					System.out.println(respuesta1);
-					byte[] respuesta1PostHexadecimal = Hex.encode(respuesta1);
-					System.out.println(new String (respuesta1));
-					System.out.println(new String (respuesta1PostHexadecimal));
-					outputLine = "ACT1:" + new String(respuesta1PostHexadecimal);
+					String respuesta1PostHexadecimal = Hex.toHexString(respuesta1);
+					outputLine = "ACT1:" + respuesta1PostHexadecimal;
 					output.flush();
-//					outputLine = respuesta12.toUpperCase();
 					System.out.println(outputLine);
 					output.println(outputLine);
 					//FIN ACT1
 					//INICIO ACT2
-					Hash hashObject = new Hash();
-					byte[] hasheadoBytes = hashObject.calcular(coordenadas);
-					String hasheado = new String(hasheadoBytes);
-					byte[] respuesta2 = claseSecretaAsimetrico.cifrar(hasheado, llaveServidor);
-					byte[] respuesta2PostExadecimal = Hex.encode(respuesta2);
-					outputLine = "ACT2:" + new String(respuesta2PostExadecimal);
+					Mac mac = Mac.getInstance(ALGORITMOHMAC);
+					mac.init(LS);
+					byte[] hasheadoBytes = mac.doFinal(coordenadas.getBytes());
+					Cipher cipherAsimetricoEncriptar = Cipher.getInstance(ALGORITMOASIMETRICO);
+					cipherAsimetricoEncriptar.init(Cipher.ENCRYPT_MODE, llaveServidor);
+					String respuesta2PostExadecimal = Hex.toHexString(cipherAsimetricoEncriptar.doFinal(hasheadoBytes));
+					outputLine = "ACT2:" + respuesta2PostExadecimal;
 					//FIN ACT2
 					estado++;
 					break;
@@ -249,18 +256,6 @@ public class ProtocoloCliente
 		return respuesta;
 	}
 	
-//	public static X509Certificate generarCertificado()
-//	{
-//		X509Certificate respuesta = null;
-//		//TODO implementar método para obtener los algoritmos necesarios.
-//		try {
-//			respuesta = GeneradorDeCertificados.generateV3Certificate(claseSecretaAsimetrico.getKeys());
-//		} catch (InvalidKeyException | NoSuchProviderException | SignatureException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		return respuesta;
-//	}	
 	public static boolean revisarCertificado (InputStream input)
 	{
 		boolean respuesta = false;
@@ -268,14 +263,8 @@ public class ProtocoloCliente
 		try
 		{
 			CertificateFactory cf = CertificateFactory.getInstance("X509");
-//			ByteArrayInputStream stream = new ByteArrayInputStream(certificateBytes);
 			X509Certificate certificadoServidor = (X509Certificate) cf.generateCertificate(input);
 			certificadoServidor.verify(certificadoServidor.getPublicKey());
-//			CertificateBuilder (bouncycastle)
-//			llaveServidor = certificadoServidor.getPublicKey();
-//			byte[] firma = certificadoServidor.getSignature();
-//			certificadoServidor.getSigAlgName();
-//			ClaseSecretaAsimetrico.descifrarCertificado(firma, llaveServidor);
 			respuesta = true;
 			llaveServidor = certificadoServidor.getPublicKey();
 		}catch (CertificateException e)
