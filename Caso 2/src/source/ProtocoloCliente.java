@@ -66,13 +66,11 @@ public class ProtocoloCliente
 		OutputStream bytesOutput = socket.getOutputStream();
 		String inputLine, outputLine;
 		int estado = 0;
-		System.out.println("PRE");
 		output.println(HOLA);
-		System.out.println("POST");
 		while (estado < FINALSTATE && (inputLine = input.readLine()) != null)
 		{
 			try {
-				Thread.sleep(200);
+				Thread.sleep(50);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -150,12 +148,9 @@ public class ProtocoloCliente
 					estado = 0;
 					break;
 				}
-				System.out.println("PRE VERIFICACIÓN");
 				if(revisarCertificado(bytesInput))
 				{
-					System.out.println("Entro");
 					outputLine = ESTADO + ":" + OK;
-					System.out.println("salio");
 				}
 				else
 				{
@@ -287,7 +282,6 @@ public class ProtocoloCliente
 		{
 			System.out.println(e.getMessage());
 		}
-		System.out.println("booleanoControl:" + respuesta);
 		return respuesta;
 	}
 	
