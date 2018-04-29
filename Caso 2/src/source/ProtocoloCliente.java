@@ -46,20 +46,17 @@ public class ProtocoloCliente
 	private static PublicKey llaveServidor;
 	
 	private static ClaseSecretaAsimetrico claseSecretaAsimetrico;
-//	private static ClaseSecretaSimetrico claseSecretaSimetrico;
 	private static GeneradorDeCertificados certificateGenerator;
 	public ProtocoloCliente(Socket pSocket)
 	{
 		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 		socket = pSocket;
 		claseSecretaAsimetrico = new ClaseSecretaAsimetrico(ALGORITMOASIMETRICO);
-//		claseSecretaSimetrico = new ClaseSecretaSimetrico(ALGORITMOSIMETRICO, "");
 		certificateGenerator = new GeneradorDeCertificados(claseSecretaAsimetrico.getKeys());
 		certCliente = certificateGenerator.getCertificate();
 	}
 
-	public void procesar(//BufferedReader pIn,PrintWriter pOut
-			) throws IOException {
+	public void procesar() throws IOException {
 		BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		InputStream bytesInput = socket.getInputStream();
 		PrintWriter output = new PrintWriter(socket.getOutputStream(),true);
@@ -72,10 +69,8 @@ public class ProtocoloCliente
 			try {
 				Thread.sleep(50);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			System.out.println("INPUTLINE: " + inputLine);
 			switch (estado) {
 			case 0:
 				if (!inputLine.equalsIgnoreCase(INICIO)) {
@@ -103,13 +98,6 @@ public class ProtocoloCliente
 				}
 				output.println(CERTCLNT);
 				
-//				System.out.println("Certificado Cliente: " + certCliente);
-//				if(certCliente == null)
-//				{
-//					outputLine = ERROR;
-//					estado = FINALSTATE;
-//					break;
-//				}
 				byte[] mybyte;
 				try {
 					mybyte = certCliente.getEncoded();
@@ -181,11 +169,9 @@ public class ProtocoloCliente
 					byte[] respuesta1 = cipherSimetrico.doFinal(coordenadas.getBytes()); 
 					
 					
-					System.out.println(respuesta1);
 					String respuesta1PostHexadecimal = Hex.toHexString(respuesta1);
 					outputLine = "ACT1:" + respuesta1PostHexadecimal;
 					output.flush();
-					System.out.println(outputLine);
 					output.println(outputLine);
 					//FIN ACT1
 					//INICIO ACT2
@@ -246,7 +232,6 @@ public class ProtocoloCliente
 	
 	public static String obtenerAlgoritmos()
 	{
-		//TODO implementar método para obtener los algoritmos necesarios.
 		String respuesta = ALGORITMOS + ":" + ALGORITMOSIMETRICO+ ":" + ALGORITMOASIMETRICO+ ":" + ALGORITMOHMAC;
 		return respuesta;
 	}
@@ -254,7 +239,6 @@ public class ProtocoloCliente
 	public static boolean revisarCertificado (InputStream input)
 	{
 		boolean respuesta = false;
-		//TODO implementar método para revisar la veracidad del certificado.
 		try
 		{
 			CertificateFactory cf = CertificateFactory.getInstance("X509");
@@ -300,7 +284,6 @@ public class ProtocoloCliente
 	    String[] parte2 = df.format(longitude).split(",");
 	    String parte2Corregida = parte2[0] + "." + parte2[1];
 	    String respuesta = (parte1Corregida + "," + parte2Corregida);
-	    System.out.println("Coordenadas: " + respuesta);
 	    return respuesta;
 	}
 	
