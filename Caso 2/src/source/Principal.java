@@ -19,7 +19,7 @@ public class Principal {
 //		{
 			Socket socket = new Socket(IP,PUERTO);
 			protocolo = new ProtocoloCliente(socket);
-//			protocolo.procesar();
+			protocolo.procesar();
 			socket.close();
 //		}
 //		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
