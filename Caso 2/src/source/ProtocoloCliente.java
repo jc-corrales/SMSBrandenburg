@@ -149,7 +149,7 @@ public class ProtocoloCliente
 				{
 					outputLine = ESTADO + ":" + ERROR;
 				}
-				timerLlaveSimetrica=System.currentTimeMillis();
+				timerLlaveSimetrica=System.nanoTime();
 				estado++;
 				break;
 			case 4:
@@ -166,7 +166,7 @@ public class ProtocoloCliente
 					Cipher cipherAsimetrico = Cipher.getInstance(ALGORITMOASIMETRICO);
 					cipherAsimetrico.init(Cipher.DECRYPT_MODE, claseSecretaAsimetrico.getKeys().getPrivate());
 					byte[] LSbytes = cipherAsimetrico.doFinal(Hex.decode(datos[1]));
-					long actualLS = System.currentTimeMillis();
+					long actualLS = System.nanoTime();
 					System.out.println("Tiempo llave simetrica: "+(actualLS-timerLlaveSimetrica));
 					SecretKey LS = new SecretKeySpec(LSbytes, 0, LSbytes.length, ALGORITMOSIMETRICO);
 					String coordenadas = obtenerCoordenadas();
@@ -179,7 +179,7 @@ public class ProtocoloCliente
 					
 					String respuesta1PostHexadecimal = Hex.toHexString(respuesta1);
 					outputLine = "ACT1:" + respuesta1PostHexadecimal;
-					timerAct1 = System.currentTimeMillis();
+					timerAct1 = System.nanoTime();
 					output.flush();
 					output.println(outputLine);
 					//FIN ACT1
@@ -204,7 +204,7 @@ public class ProtocoloCliente
 				}
 				break;
 			case 5:
-				long actualACT1 = System.currentTimeMillis();
+				long actualACT1 = System.nanoTime();
 				System.out.println("Tiempo ACT1: "+(actualACT1-timerAct1));
 				try
 				{

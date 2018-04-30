@@ -7,7 +7,7 @@ import java.security.cert.CertificateException;
 public class Principal {
 	public static final String PROVIDER= "BC";
 	public static final Integer PUERTO = 8080;
-	public static final String IP = "192.168.56.1";
+	public static final String IP = "192.168.1.103";
 //	public static final String IP = "157.253.202.33";
 	private static ProtocoloCliente protocolo;
 

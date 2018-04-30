@@ -8,14 +8,11 @@ import uniandes.gload.core.Task;
 
 public class ClientServerTask extends Task
 {
-	public static final String IP = "192.168.56.1";
-//	public static final String IP = "157.253.202.33";
-	public static final Integer PUERTO = 8080;
 	@Override
 	public void execute()
 	{	
 		try {
-			Socket socket = new Socket(IP,PUERTO);
+			Socket socket = new Socket(Principal.IP,Principal.PUERTO);
 			Principal client = new Principal(socket);
 			client.getProtocoloCliente().procesar();
 			socket.close();

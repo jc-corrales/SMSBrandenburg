@@ -16,8 +16,8 @@ public class Generator
 	public Generator()
 	{
 		Task work = createTask();
-		int numberOfTasks = 100;
-		int gapBetweenTasks = 1000;
+		int numberOfTasks = 80;
+		int gapBetweenTasks = 100;
 		generator = new LoadGenerator(NOMBRE, numberOfTasks, work, gapBetweenTasks);
 		generator.generate();
 	}
