@@ -46,9 +46,6 @@ public class GeneradorDeCertificados
 		{
 			System.err.println("CERTIFICADO NO VÁLIDO: " + e.getMessage());
 		}
-		//	        System.out.println("Public key: " + keyPair.getPublic().toString());
-		//	        System.out.println("Public key: " + keyPair.getPrivate().toString());
-		System.out.println("valid certificate generated");
 	}
 	public static X509Certificate generateV3Certificate(KeyPair pair)throws InvalidKeyException, NoSuchProviderException, SignatureException
 	{

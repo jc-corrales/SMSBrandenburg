@@ -6,6 +6,8 @@ import uniandes.gload.core.Task;
 public class Generator
 {
 	public final static String NOMBRE = "Client - Server Load Test";
+	public final static int NUMBEROFTASKS = 10;
+	public final static int GAPBETWEENTASKS = 1000;
 	/**
 	 * Load generator Srevice (From GLoad 1.0)
 	 */
@@ -16,9 +18,8 @@ public class Generator
 	public Generator()
 	{
 		Task work = createTask();
-		int numberOfTasks = 80;
-		int gapBetweenTasks = 100;
-		generator = new LoadGenerator(NOMBRE, numberOfTasks, work, gapBetweenTasks);
+
+		generator = new LoadGenerator(NOMBRE, NUMBEROFTASKS, work, GAPBETWEENTASKS);
 		generator.generate();
 	}
 	/**

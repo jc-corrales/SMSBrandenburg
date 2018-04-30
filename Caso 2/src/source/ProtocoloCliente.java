@@ -8,6 +8,8 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PublicKey;
@@ -45,23 +47,38 @@ public class ProtocoloCliente
 	
 	private static PublicKey llaveServidor;
 	
-	private static ClaseSecretaAsimetrico claseSecretaAsimetrico;
+//	private static ClaseSecretaAsimetrico claseSecretaAsimetrico;
 	private static GeneradorDeCertificados certificateGenerator;
 	
 	private long timerLlaveSimetrica;
 	private long timerAct1;
+	private KeyPair keyPair;
 	public ProtocoloCliente(Socket pSocket)
 	{
 		timerLlaveSimetrica=0;
 		timerAct1=0;
 		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 		socket = pSocket;
-		claseSecretaAsimetrico = new ClaseSecretaAsimetrico(ALGORITMOASIMETRICO);
-		certificateGenerator = new GeneradorDeCertificados(claseSecretaAsimetrico.getKeys());
+//		claseSecretaAsimetrico = new ClaseSecretaAsimetrico(ALGORITMOASIMETRICO);
+		
+		KeyPairGenerator generator;
+		try {
+			generator = KeyPairGenerator.getInstance(ALGORITMOASIMETRICO//, Principal.PROVIDER
+					);
+			generator.initialize(1024);
+			keyPair = generator.generateKeyPair();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		
+		certificateGenerator = new GeneradorDeCertificados(keyPair);
 		certCliente = certificateGenerator.getCertificate();
 	}
 
 	public void procesar() throws IOException {
+		long tiempoLlaveSimetrica = 0;
+		long tiempoActualizacion = 0;
 		BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		InputStream bytesInput = socket.getInputStream();
 		PrintWriter output = new PrintWriter(socket.getOutputStream(),true);
@@ -164,10 +181,11 @@ public class ProtocoloCliente
 					String[] datos = inputLine.split(":");
 					//INICIO ACT1
 					Cipher cipherAsimetrico = Cipher.getInstance(ALGORITMOASIMETRICO);
-					cipherAsimetrico.init(Cipher.DECRYPT_MODE, claseSecretaAsimetrico.getKeys().getPrivate());
+					cipherAsimetrico.init(Cipher.DECRYPT_MODE, keyPair.getPrivate());
 					byte[] LSbytes = cipherAsimetrico.doFinal(Hex.decode(datos[1]));
 					long actualLS = System.nanoTime();
-					System.out.println("Tiempo llave simetrica: "+(actualLS-timerLlaveSimetrica));
+					tiempoLlaveSimetrica = (actualLS-timerLlaveSimetrica);
+					System.out.println("Tiempo llave simetrica: "+ tiempoLlaveSimetrica);
 					SecretKey LS = new SecretKeySpec(LSbytes, 0, LSbytes.length, ALGORITMOSIMETRICO);
 					String coordenadas = obtenerCoordenadas();
 					Cipher cipherSimetrico = Cipher.getInstance(ALGORITMOSIMETRICO);
@@ -205,7 +223,8 @@ public class ProtocoloCliente
 				break;
 			case 5:
 				long actualACT1 = System.nanoTime();
-				System.out.println("Tiempo ACT1: "+(actualACT1-timerAct1));
+				tiempoActualizacion = (actualACT1-timerAct1);
+				System.out.println("Tiempo ACT1: "+tiempoActualizacion);
 				try
 				{
 					String[] entrada3 = inputLine.split(":");
@@ -237,6 +256,7 @@ public class ProtocoloCliente
 				output.flush();
 			}
 		}
+		Registrador.addRegister("Tiempo Llave Simetrica:;" + tiempoLlaveSimetrica + ";tiempoActualizacion:;" + tiempoActualizacion);
 		output.close();
 		input.close();
 	}
