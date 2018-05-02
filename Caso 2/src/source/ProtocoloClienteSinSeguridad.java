@@ -183,9 +183,9 @@ public class ProtocoloClienteSinSeguridad
 //					Cipher cipherAsimetrico = Cipher.getInstance(ALGORITMOASIMETRICO);
 //					cipherAsimetrico.init(Cipher.DECRYPT_MODE, keyPair.getPrivate());
 //					byte[] LSbytes = cipherAsimetrico.doFinal(Hex.decode(datos[1]));
-//					long actualLS = System.nanoTime();
-//					tiempoLlaveSimetrica = (actualLS-timerLlaveSimetrica);
-//					System.out.println("Tiempo llave simetrica: "+ tiempoLlaveSimetrica);
+					long actualLS = System.nanoTime();
+					tiempoLlaveSimetrica = (actualLS-timerLlaveSimetrica);
+					System.out.println("Tiempo llave simetrica: "+ tiempoLlaveSimetrica);
 //					SecretKey LS = new SecretKeySpec(LSbytes, 0, LSbytes.length, ALGORITMOSIMETRICO);
 //					String coordenadas = obtenerCoordenadas();
 //					Cipher cipherSimetrico = Cipher.getInstance(ALGORITMOSIMETRICO);
