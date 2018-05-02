@@ -32,15 +32,6 @@ public class ClientServerTask extends Task
 			fail();
 //			e.printStackTrace();
 		}
-		if(Generator.NUMBEROFTASKS == contadorB)
-		{
-			try {
-				Registrador.writeRegister();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
 		
 	}
 	@Override

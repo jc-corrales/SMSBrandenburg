@@ -256,7 +256,7 @@ public class ProtocoloClienteSinSeguridad
 				output.flush();
 			}
 		}
-		Registrador.addRegister("Tiempo Llave Simetrica:;" + tiempoLlaveSimetrica + ";tiempoActualizacion:;" + tiempoActualizacion);
+		Registrador.registrar("Tiempo Llave Simetrica:;" + tiempoLlaveSimetrica + ";tiempoActualizacion:;" + tiempoActualizacion);
 		output.close();
 		input.close();
 	}

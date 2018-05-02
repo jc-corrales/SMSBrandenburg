@@ -28,7 +28,6 @@ public class Principal {
 				protocolo.procesar();
 				socket.close();
 //			}
-			Registrador.writeRegister();
 		}
 		else
 		{
@@ -39,7 +38,6 @@ public class Principal {
 				protocoloSS.procesar();
 				socket.close();
 			}
-			Registrador.writeRegister();
 		}
 //		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 	}
