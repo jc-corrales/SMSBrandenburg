@@ -18,7 +18,14 @@ public class ClientServerTask extends Task
 		try {
 			Socket socket = new Socket(Principal.IP,Principal.PUERTO);
 			Principal client = new Principal(socket);
-			client.getProtocoloCliente().procesar();
+			if(Principal.SEGURIDAD)
+			{
+				client.getProtocoloCliente().procesar();
+			}
+			else
+			{
+				client.getProtocoloClienteSinSeguridad().procesar();
+			}
 			socket.close();
 			success();
 		} catch (IOException | CertificateException e) {

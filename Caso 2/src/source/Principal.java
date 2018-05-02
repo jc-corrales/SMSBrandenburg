@@ -46,7 +46,14 @@ public class Principal {
 	
 	public Principal(Socket socket) throws CertificateException, IOException
 	{
+		if(SEGURIDAD)
+		{
 			protocolo = new ProtocoloCliente(socket);
+		}
+		else
+		{
+			protocoloSS = new ProtocoloClienteSinSeguridad(socket);
+		}
 	}
 	/**
 	 * Método que obtiene el protocoloCliente de este Cliente.
@@ -55,5 +62,9 @@ public class Principal {
 	public ProtocoloCliente getProtocoloCliente()
 	{
 		return protocolo;
+	}
+	public ProtocoloClienteSinSeguridad getProtocoloClienteSinSeguridad()
+	{
+		return protocoloSS;
 	}
 }
